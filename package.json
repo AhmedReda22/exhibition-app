@@ -1,8 +1,8 @@
 {
   "name": "exhibition-app",
   "version": "0.1.0",
-  "homepage": "https://AhmedReda22.github.io/exhibition-app",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
@@ -41,5 +41,8 @@
   },
   "devDependencies": {
     "gh-pages": "^6.3.0"
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
