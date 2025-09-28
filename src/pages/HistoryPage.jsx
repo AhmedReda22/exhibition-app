@@ -57,37 +57,60 @@ export default function HistoryPage({ language = "en", onNext }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 📝 تزامن النص مع الفيديو
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+  
+// 📝 تزامن النص مع الصوت (كلمة بكلمة)
+useEffect(() => {
+  if (!window.speechSynthesis) return;
 
-    const handleTimeUpdate = () => {
-      if (!video.duration) return;
-      const progress = video.currentTime / video.duration;
-      const charsToShow = Math.floor(fullText.length * progress);
-      setBubbleText(fullText.slice(0, charsToShow));
-    };
+  const video = videoRef.current;
+  if (!video) return;
 
-    video.addEventListener("timeupdate", handleTimeUpdate);
+  // Reset
+  setBubbleText("");
+  window.speechSynthesis.cancel();
 
-    // 🎤 شغل الصوت مع بداية الفيديو
-    const handlePlay = () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(fullText);
-        utter.lang = language === "ru" ? "ru-RU" : language === "uz" ? "uz-UZ" : "en-US";
-        window.speechSynthesis.speak(utter);
+  const words = fullText.split(" "); // ✨ قسم النص لكلمات
+  let currentWordIndex = 0;
+
+  const utter = new SpeechSynthesisUtterance(fullText);
+  utter.lang =
+    language === "ru"
+      ? "ru-RU"
+      : language === "uz"
+      ? "uz-UZ"
+      : "en-US";
+
+  // ✨ تحديث النص مع كل كلمة
+  utter.onboundary = (event) => {
+    if (event.name === "word" || event.charIndex !== undefined) {
+      if (currentWordIndex < words.length) {
+        currentWordIndex++;
+        setBubbleText(words.slice(0, currentWordIndex).join(" "));
       }
-    };
+    }
+  };
 
-    video.addEventListener("play", handlePlay);
+  // ✨ في نهاية الصوت اعرض النص كامل (ضمان)
+  utter.onend = () => {
+    setBubbleText(fullText);
+  };
 
-    return () => {
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("play", handlePlay);
-    };
-  }, [language, fullText]);
+  // شغل الفيديو والصوت مع بعض
+  const handlePlay = () => {
+    video.play();
+    window.speechSynthesis.speak(utter);
+  };
+
+  video.addEventListener("play", handlePlay);
+
+  return () => {
+    video.removeEventListener("play", handlePlay);
+    window.speechSynthesis.cancel();
+  };
+}, [language, fullText]);
+
+
+
 
   // 🏙️ المدن + أماكنها
   const cities = [
