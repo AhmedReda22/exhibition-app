@@ -3,25 +3,69 @@ html, body, #root {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-family: Arial, sans-serif;
+  font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', Arial, sans-serif;
   background: black;
   color: white;
+  overflow: hidden;
+}
+
+/* خلفية الكون المتحركة */
+.space-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 35%, #0f3460 70%, #000000 100%);
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.star {
+  position: absolute;
+  background-color: white;
+  border-radius: 50%;
+  animation: twinkle linear infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .page {
   display: flex;
   flex-direction: column;
-  justify-content: center;   /* يخلي المحتوى يتوسّط عمودياً */
-  align-items: center;       /* يخلي المحتوى يتوسّط أفقياً */
-  min-height: 100vh;         /* ياخد طول الشاشة بالكامل */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   text-align: center;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  padding: 20px;
 }
+
 .circle-buttons {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap; /* لو الشاشة صغيرة ينزلوا تحت بعض */
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 40px;
 }
 
 .fade-text {
@@ -38,64 +82,108 @@ html, body, #root {
 
 .glow-button {
   color: white;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: none;
-  margin: 20px;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
   cursor: pointer;
-  animation: glowPulse 2s infinite alternate;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* 🔥 أقل */
+  animation: glowPulse 2s infinite alternate, float 3s ease-in-out infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .glow-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7); /* 🔥 أخف من قبل */
+  transform: scale(1.15);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+  filter: brightness(1.2);
+}
+
+.glow-button:hover::before {
+  opacity: 1;
 }
 
 @keyframes glowPulse {
   0% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
   }
   100% {
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
   }
 }
+
 .robot-container {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 40px;
+  gap: 30px;
+  margin-bottom: 50px;
+  /* ❌ شيل الانيميشن */
 }
 
-.robot-video {
-  width: 220px;
+.robot-image {
+  width: 280px;
   height: auto;
-  border-radius: 20px;
+  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+  transition: none; /* ❌ شيل التحريك عند hover */
+}
+
+.robot-image:hover {
+  transform: none; /* ❌ مفيش تكبير/دوران عند hover */
 }
 
 .speech-bubble {
   position: relative;
-  border-radius: 20px;
-  padding: 20px;
-  max-width: 600px;
-  transition: opacity 0.5s ease-in-out;
+  border-radius: 25px;
+  padding: 25px 30px;
+  max-width: 650px;
+  background: linear-gradient(145deg, rgba(30, 136, 229, 0.9), rgba(100, 200, 255, 0.9));
+  color: white;
+  font-size: 22px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  /* ❌ شيل الانيميشن */
 }
 
-
-.speech-bubble.hidden {
-  opacity: 0;
+@keyframes bubblePulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.02);
+  }
 }
 
-.speech-bubble.visible {
-  opacity: 1;
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+  border-right: 20px solid rgba(30, 136, 229, 0.9);
 }
+
 .bubble-line {
-  margin: 8px 0;
-  font-size: 18px;
+  margin: 10px 0;
+  font-size: 20px;
   color: white;
 }
 
@@ -109,50 +197,10 @@ html, body, #root {
     opacity: 1;
   }
 }
-.robot-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.robot-video {
-  width: 220px;
-  height: auto;
-  border-radius: 20px;
-  flex-shrink: 0; /* يثبت الفيديو مكانه */
-}
-
-.speech-bubble {
-  position: relative;
-  background: rgba(30, 136, 229, 0.85); /* أزرق شفاف مناسب */
-  color: white;
-  border-radius: 25px;
-  padding: 20px;
-  width: 500px;
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 18px;
-}
-
-/* سهم المحادثة أوضح */
-.speech-bubble::after {
-  content: "";
-  position: absolute;
-  left: -38px;
-  top: 35px;
-  width: 0;
-  height: 0;
-  border: 20px solid transparent;
-  border-right-color: rgba(30, 136, 229, 0.85);
-}
 
 .fade-in-line {
   opacity: 0;
-  animation: fadeInLine 0.8s forwards;
+  animation: fadeInLine 0.8s forwards, textGlow 2s infinite alternate;
 }
 
 @keyframes fadeInLine {
@@ -160,3 +208,320 @@ html, body, #root {
     opacity: 1;
   }
 }
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.book-container {
+  margin: 40px 0;
+  animation: float 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+}
+
+.book-container img {
+  width: 350px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  transition: transform 0.5s ease;
+}
+
+.book-container img:hover {
+  transform: scale(1.05) rotate(-2deg);
+}
+
+/* تصميم صفحة OriginPage */
+.city-map-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.city-map {
+  background: linear-gradient(145deg, #0b3b2e, #1a5a4c);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(255, 215, 0, 0.5);
+}
+
+.city-point {
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.city-point:hover {
+  filter: drop-shadow(0 0 10px gold);
+}
+
+.city-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  animation: fadeIn 0.3s forwards;
+}
+
+.city-popup-inner {
+  background: linear-gradient(145deg, #1a5a4c, #0b3b2e);
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border: 3px solid gold;
+  animation: popIn 0.5s forwards;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.city-popup-inner h3 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: gold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+.city-popup-inner button {
+  margin-top: 20px;
+  padding: 15px 30px;
+  border-radius: 15px;
+  border: none;
+  background: linear-gradient(145deg, #ffd166, #ffb347);
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.city-popup-inner button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.page-title {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: gold;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+  animation: textGlow 2s infinite alternate;
+}
+
+.page-subtitle {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: #ddd;
+}
+
+.city-point circle {
+  transition: transform 0.3s ease, fill 0.3s ease;
+}
+
+.city-point:hover circle {
+  transform: scale(1.2);
+}
+
+.city-selected circle {
+  animation: bounce 0.6s ease forwards;
+}
+
+@keyframes bounce {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(-15px); }
+  60%  { transform: translateY(8px); }
+  100% { transform: translateY(0); }
+}
+
+
+.book-open {
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  height: 500px;
+  margin: 0 auto;
+  background: url("./assets/book1.png") center/cover no-repeat; /* ✅ استبدال book.png بـ book1.png */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+
+.typewriter-text {
+  font-size: 22px;
+  color: #fff;
+  max-width: 80%;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  text-align: center;
+  animation: textGlow 2s infinite alternate;
+}
+
+.book-video {
+  transform: perspective(1000px) rotateY(-5deg);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+  border-radius: 15px;
+}
+
+.map-point {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: red;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.map-point:hover {
+  transform: scale(1.3);
+  background: gold;
+}
+
+
+/* تنسيقات صفحة التاريخ */
+/* 🎥 الفيديو */
+.history-video {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+.video-player {
+  width: 65%;         /* الفيديو يفضل زي ما هو */
+  max-width: 800px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  display: block;
+  margin: 0 auto;
+}
+
+.map-image-full {
+  width: 100%;        /* تاخد الشاشة كلها */
+  max-width: 100%;    /* مفيش حد أقصى */
+  height: auto;       /* يحافظ على النسبة */
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  display: block;
+}
+
+
+
+
+
+/* 🗺️ الخريطة */
+.map-container {
+  position: relative;
+  display: flex;           /* ✅ زي الفيديو */
+  justify-content: center; /* ✅ في النص */
+  margin-top: 20px;
+}
+.map-image {
+  width: 65%;
+  max-width: 800px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  display: block;
+  margin: 0 auto;
+}
+
+.city-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: red;
+  border-radius: 50%;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+.city-dot:hover {
+  transform: scale(1.3);
+}
+
+/* Tooltip */
+.city-tooltip {
+  position: absolute;
+  min-width: 160px;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  transform: translateY(-50%);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.city-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  transform: translateY(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent rgba(0,0,0,0.85) transparent transparent;
+}
+/* تنسيقات مشتركة للفيديو والخريطة */
+.history-media {
+  width: 65%;
+  max-width: 800px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: block;
+  margin: 0 auto;
+  object-fit: cover; /* ✅ هذا السطر مهم للحفاظ على النسب */
+}
+
+/* زرار Next */
+.next {
+  margin-top: 30px;
+  padding: 15px 40px;
+  font-size: 20px;
+  background: linear-gradient(145deg, #ffd166, #ffb347);
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  font-weight: bold;
+}
+
+.next:hover {
+  transform: scale(1.05);
+}
+
