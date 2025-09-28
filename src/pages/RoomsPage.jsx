@@ -54,36 +54,55 @@ export default function RoomsPage({ language, onFinish }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 📝 تزامن النص مع الفيديو
-  useEffect(() => {
+  
+  
+// 📝 عرض النص الأول ثم تشغيل الصوت بعده
+useEffect(() => {
   if (!window.speechSynthesis) return;
 
-  // إلغاء أي أصوات سابقة
   window.speechSynthesis.cancel();
-  setBubbleText(""); // تصفير النص
+  setBubbleText("");
 
-  const utter = new SpeechSynthesisUtterance(fullText);
-  utter.lang =
-    language === "ru"
-      ? "ru-RU"
-      : language === "uz"
-      ? "uz-UZ"
-      : "en-US";
+  const sentences = fullText
+    .split(/([.!?])/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 
-  // التقدم في النص كلمة بكلمة (أو حرف بحرف حسب الاختيار)
-  utter.onboundary = (event) => {
-    if (event.name === "word" || event.name === "text") {
-      const currentIndex = event.charIndex;
-      setBubbleText(fullText.slice(0, currentIndex));
-    }
+  let current = 0;
+
+  const showAndSpeakSentence = () => {
+    if (current >= sentences.length) return;
+
+    const sentence = sentences[current];
+
+    // ✨ الأول: نكتب الجملة في البابل
+    setBubbleText((prev) => (prev ? prev + " " : "") + sentence);
+
+    // 🎤 بعد كتابة الجملة نسمع الصوت
+    const utter = new SpeechSynthesisUtterance(sentence);
+    utter.lang =
+      language === "ru"
+        ? "ru-RU"
+        : language === "uz"
+        ? "uz-UZ"
+        : "en-US";
+
+    utter.onend = () => {
+      current++;
+      showAndSpeakSentence(); // نكمل اللي بعدها
+    };
+
+    window.speechSynthesis.speak(utter);
   };
 
-  window.speechSynthesis.speak(utter);
+  showAndSpeakSentence();
 
   return () => {
     window.speechSynthesis.cancel();
   };
 }, [language, fullText]);
+
+
 
 
   return (
