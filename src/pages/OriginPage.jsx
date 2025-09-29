@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../style.css";
 import robotImage from "../assets/robot.png";
+import bgImage from "../assets/bg.png";
 
 export default function OriginPage({ language = "en", onNext }) {
   const [selectedCity, setSelectedCity] = useState(null);
   const [bubbleText, setBubbleText] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [clickedCity, setClickedCity] = useState(null);
+  const [activeEffects, setActiveEffects] = useState([]);
   const starsContainerRef = useRef(null);
+  const effectsContainerRef = useRef(null);
 
   const cities = [
     { id: "tashkent", label: { en: "Tashkent", uz: "Toshkent", ru: "Ташкент" }, x: 520, y: 140 },
@@ -20,25 +25,25 @@ export default function OriginPage({ language = "en", onNext }) {
 
   const localized = {
     en: {
-      where: "Where are you visiting from?",
-      welcome: (city) => `Welcome from ${city}!`,
-      next: "Next",
-      hint: "Tap a city",
-      hakimHello: "Hello! I am Hakim — your guide.",
+      where: "Where Are You Visiting From?",
+      welcome: (city) => `🎉 Welcome from ${city}! 🎉`,
+      next: "Let's Explore! 🚀",
+      hint: "✨ Tap on a magical city to begin your adventure! ✨",
+      hakimHello: "Hello little explorers! I'm Hakim, your friendly robot guide! Let's discover where you're from!",
     },
     uz: {
-      where: "Сиз қаердан ташриф буюрдингиз?",
-      welcome: (city) => `${city}дан хуш келибсиз!`,
-      next: "Кейинги",
-      hint: "Шаҳарга босинг",
-      hakimHello: "Салом! Мен — Ҳакім, сизнинг йўлбошчингиз.",
+      where: "Сиз Қаердан Келдингиз?",
+      welcome: (city) => `🎉 ${city}дан Хуш Келибсиз! 🎉`,
+      next: "Келгингиз, Тадкик Қиламиз! 🚀",
+      hint: "✨ Сафарни бошлаш учун сеҳрли шаҳарга босинг! ✨",
+      hakimHello: "Салом, кичкина саёҳатчилар! Мен Ҳаким, сизнинг дўстона робот йўлбошчингизман! Келинг, сиз қаердан эканлигингизни билайлик!",
     },
     ru: {
-      where: "Откуда вы нас посетили?",
-      welcome: (city) => `Добро пожаловать из ${city}!`,
-      next: "Далее",
-      hint: "Нажмите на город",
-      hakimHello: "Привет! Я Хаким — ваш гид.",
+      where: "Откуда Вы Приехали?",
+      welcome: (city) => `🎉 Добро Пожаловать из ${city}! 🎉`,
+      next: "Вперёд к Приключениям! 🚀",
+      hint: "✨ Нажмите на волшебный город, чтобы начать путешествие! ✨",
+      hakimHello: "Привет, маленькие исследователи! Я Хаким, ваш дружелюбный робот-гид! Давайте узнаем, откуда вы!",
     },
   };
 
@@ -52,21 +57,23 @@ export default function OriginPage({ language = "en", onNext }) {
 
       container.innerHTML = "";
 
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < 200; i++) {
         const star = document.createElement("div");
         star.className = "star";
 
-        const size = Math.random() * 3 + 1;
+        const size = Math.random() * 4 + 2;
         const left = Math.random() * 100;
         const top = Math.random() * 100;
-        const duration = Math.random() * 5 + 3;
+        const duration = Math.random() * 6 + 4;
+        const delay = Math.random() * 8;
 
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
         star.style.left = `${left}%`;
         star.style.top = `${top}%`;
         star.style.animationDuration = `${duration}s`;
-        star.style.animationDelay = `${Math.random() * 5}s`;
+        star.style.animationDelay = `${delay}s`;
+        star.style.opacity = Math.random() * 0.8 + 0.2;
 
         container.appendChild(star);
       }
@@ -77,141 +84,229 @@ export default function OriginPage({ language = "en", onNext }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 🗣️ عند تحميل الصفحة: قول جملة Hakim الأولى
-  useEffect(() => {
-    setBubbleText(texts.hakimHello);
-
+  // 🗣️ دالة تشغيل الصوت المحسنة
+  const speakText = (text, lang, callback) => {
     if (window.speechSynthesis) {
-      const utter = new SpeechSynthesisUtterance(texts.hakimHello);
-      utter.lang = language === "ru" ? "ru-RU" : language === "uz" ? "uz-UZ" : "en-US";
       window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utter);
-    }
-  }, [language]);
 
-  // 🗺️ لما يضغط على مدينة
-  const handleCityClick = (city) => {
-    const msg = texts.welcome(city.label[language]);
-    setSelectedCity(city);
-    setBubbleText(msg);
+      const utterance = new SpeechSynthesisUtterance(text);
 
-    if (window.speechSynthesis) {
-      const utter = new SpeechSynthesisUtterance(msg);
-      utter.lang = language === "ru" ? "ru-RU" : language === "uz" ? "uz-UZ" : "en-US";
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utter);
+      if (lang === "ru") {
+        utterance.lang = "ru-RU";
+        utterance.rate = 0.9;
+      } else if (lang === "uz") {
+        utterance.lang = "tr-TR";
+        utterance.rate = 0.85;
+      } else {
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+      }
+
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+
+      setIsSpeaking(true);
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        if (callback) setTimeout(callback, 800);
+      };
+
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        if (callback) setTimeout(callback, 1000);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } else {
+      if (callback) setTimeout(callback, 2500);
     }
   };
 
+  // عند تحميل الصفحة: قول جملة Hakim الأولى
+  useEffect(() => {
+    setBubbleText(texts.hakimHello);
+    speakText(texts.hakimHello, language);
+  }, [language]);
+
+  // إنشاء تأثيرات النقر
+  const createClickEffects = (city, event) => {
+    const container = effectsContainerRef.current;
+    if (!container) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // تأثير الدائرة المتوسعة
+    const ring = document.createElement("div");
+    ring.className = "city-ring";
+    ring.style.left = `${centerX}px`;
+    ring.style.top = `${centerY}px`;
+    container.appendChild(ring);
+
+    // تأثير الضوء الساطع
+    const light = document.createElement("div");
+    light.className = "city-light-flash";
+    light.style.left = `${centerX}px`;
+    light.style.top = `${centerY}px`;
+    container.appendChild(light);
+
+    // تأثير النجوم
+    const stars = document.createElement("div");
+    stars.className = "city-stars";
+    stars.style.left = `${centerX}px`;
+    stars.style.top = `${centerY}px`;
+    
+    for (let i = 0; i < 8; i++) {
+      const star = document.createElement("div");
+      star.className = "city-star";
+      star.innerHTML = "⭐";
+      
+      const angle = (Math.PI * 2 * i) / 8;
+      const distance = 60;
+      const starX = Math.cos(angle) * distance;
+      const starY = Math.sin(angle) * distance;
+      
+      star.style.setProperty('--star-x', `${starX}px`);
+      star.style.setProperty('--star-y', `${starY}px`);
+      star.style.animationDelay = `${i * 0.1}s`;
+      
+      stars.appendChild(star);
+    }
+    
+    container.appendChild(stars);
+
+    // تنظيف العناصر بعد انتهاء التحريك
+    setTimeout(() => {
+      if (ring.parentNode) ring.parentNode.removeChild(ring);
+      if (light.parentNode) light.parentNode.removeChild(light);
+      if (stars.parentNode) stars.parentNode.removeChild(stars);
+    }, 1000);
+  };
+
+  // 🗺️ لما يضغط على مدينة
+  const handleCityClick = (city, event) => {
+    const msg = texts.welcome(city.label[language]);
+    setSelectedCity(city);
+    setBubbleText(msg);
+    
+    // تأثيرات النقر
+    setClickedCity(city.id);
+    createClickEffects(city, event);
+    
+    // إزالة تأثير النقر بعد انتهاء التحريك
+    setTimeout(() => setClickedCity(null), 800);
+    
+    speakText(msg, language);
+  };
+
   return (
-    <div className="page">
-      {/* 🌌 خلفية النجوم */}
-      <div className="space-background">
+    <div className="origin-page">
+      {/* 🌌 خلفية بصورة + نجوم */}
+      <div
+        className="background-image"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <div ref={starsContainerRef} className="stars"></div>
       </div>
+      
+      {/* طبقة شفافة فوق الخلفية */}
+      <div className="background-overlay"></div>
+
+      {/* حاوية تأثيرات النقر */}
+      <div ref={effectsContainerRef} style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 100
+      }}></div>
+
+      {/* 🎙️ مؤشر الصوت */}
+      {isSpeaking && (
+        <div className="speaking-indicator">
+          <div className="pulse-animation"></div>
+          🔊 {language === 'en' ? 'Hakim is speaking...' : language === 'uz' ? 'Hakim gapiramiz...' : 'Хаким говорит...'}
+        </div>
+      )}
 
       {/* 🤖 الروبوت + البالون */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "30px",
-          marginBottom: "40px",
-          flexWrap: "wrap",
-          animation: "float 4s ease-in-out infinite",
-        }}
-      >
-        <img
-          src={robotImage}
-          alt="Hakim Robot"
-          style={{
-            width: "250px",
-            height: "auto",
-            filter: "drop-shadow(0 0 15px rgba(255, 215, 0, 0.7))",
-          }}
+      <div className="origin-robot-container">
+        <img 
+          src={robotImage} 
+          alt="Hakim Robot" 
+          className="origin-robot-image"
         />
 
-        <div
-          className="speech-bubble"
-          style={{
-            background:
-              "linear-gradient(145deg, rgba(255, 209, 102, 0.9), rgba(255, 179, 71, 0.9))",
-            color: "#000",
-            padding: "20px 25px",
-            borderRadius: "20px",
-            maxWidth: "400px",
-            position: "relative",
-            fontSize: "20px",
-            minHeight: "90px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
-            border: "3px solid rgba(255, 255, 255, 0.3)",
-          }}
-        >
-          {bubbleText}
-          <div
-            style={{
-              position: "absolute",
-              left: "-20px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 0,
-              height: 0,
-              borderTop: "15px solid transparent",
-              borderBottom: "15px solid transparent",
-              borderRight: "20px solid rgba(255, 209, 102, 0.9)",
-            }}
-          />
+        <div className="origin-speech-bubble">
+          <p style={{ margin: 0, fontSize: '24px', lineHeight: '1.4' }}>
+            {bubbleText}
+            {isSpeaking && <span style={{ animation: 'blink 1s infinite' }}>...</span>}
+          </p>
         </div>
       </div>
 
       {/* 🗺️ الخريطة */}
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
-        <h2 className="page-title">{texts.where}</h2>
-        <p className="page-subtitle">{texts.hint}</p>
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <h2 className="origin-page-title">{texts.where}</h2>
+        <p className="origin-page-subtitle">{texts.hint}</p>
       </div>
 
-      <div className="city-map-container">
-        <div className="city-map">
+      <div className="origin-map-container">
+        <div className="origin-city-map">
           <svg
             viewBox="0 0 800 500"
-            style={{ width: "100%", maxWidth: "900px", height: "auto" }}
+            style={{ width: "100%", maxWidth: "1000px", height: "auto" }}
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              <linearGradient id="mapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0b3b2e" />
-                <stop offset="100%" stopColor="#1a5a4c" />
+              <linearGradient id="originMapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#8B4513" />
+                <stop offset="50%" stopColor="#A0522D" />
+                <stop offset="100%" stopColor="#CD853F" />
               </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+              <radialGradient id="cityGradient">
+                <stop offset="0%" stopColor="#FFD700" />
+                <stop offset="100%" stopColor="#CD853F" />
+              </radialGradient>
+              
+              {/* تأثير توهج للمدن المحددة */}
+              <filter id="glowEffect">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                 <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
             </defs>
 
-            <rect x="0" y="0" width="800" height="500" fill="url(#mapGradient)" />
+            <rect x="0" y="0" width="800" height="500" fill="url(#originMapGradient)" rx="20" ry="20" />
 
-            <g opacity="0.15">
+            <g opacity="0.2">
               <path
                 d="M0,250 C120,200 240,280 360,240 C480,200 600,260 800,230 L800,500 L0,500 Z"
                 fill="#ffffff"
+              />
+              <path
+                d="M0,300 C150,250 300,350 450,300 C600,250 700,320 800,280 L800,500 L0,500 Z"
+                fill="#F5F5DC"
+                opacity="0.15"
               />
             </g>
 
             {cities.map((c) => {
               const isSelected = selectedCity?.id === c.id;
+              const isClicked = clickedCity === c.id;
+              
               return (
                 <g
                   key={c.id}
                   transform={`translate(${c.x}, ${c.y})`}
-                  className={`city-point ${isSelected ? "city-selected" : ""}`}
-                  onClick={() => handleCityClick(c)}
+                  className={`origin-city-point ${isClicked ? 'city-click-effect city-vibrate city-color-change' : ''} ${isSelected ? 'city-selected-permanent' : ''}`}
+                  onClick={(e) => handleCityClick(c, e)}
                   role="button"
                   tabIndex="0"
                   style={{ cursor: "pointer" }}
@@ -220,21 +315,51 @@ export default function OriginPage({ language = "en", onNext }) {
                     cx="0"
                     cy="0"
                     r="20"
-                    fill={isSelected ? "#ff595e" : "#ffd166"}
-                    stroke="#222"
-                    strokeWidth="2"
-                    filter="url(#glow)"
+                    fill={isSelected ? "url(#cityGradient)" : "#FFD700"}
+                    stroke={isSelected ? "#8B4513" : "#5D4037"}
+                    strokeWidth={isSelected ? "3" : "2"}
+                    filter={isSelected ? "url(#glowEffect)" : "none"}
                   />
                   <text
                     x="35"
                     y="8"
                     fontSize="18"
-                    fill="#fff"
-                    fontFamily="'Comic Sans MS', sans-serif"
+                    fill={isSelected ? "#8B4513" : "#FFFFFF"}
+                    fontFamily="'Comic Sans MS', 'Arial Rounded MT Bold', cursive"
                     fontWeight="bold"
+                    textShadow="2px 2px 4px rgba(0, 0, 0, 0.8)"
                   >
                     {c.label[language]}
                   </text>
+                  
+                  {/* تأثير إضافي مرئي */}
+                  {isClicked && (
+                    <circle
+                      cx="0"
+                      cy="0"
+                      r="25"
+                      fill="none"
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                      strokeDasharray="5,5"
+                      opacity="0.8"
+                    >
+                      <animate
+                        attributeName="r"
+                        from="25"
+                        to="40"
+                        dur="0.8s"
+                        fill="freeze"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        from="0.8"
+                        to="0"
+                        dur="0.8s"
+                        fill="freeze"
+                      />
+                    </circle>
+                  )}
                 </g>
               );
             })}
@@ -244,9 +369,20 @@ export default function OriginPage({ language = "en", onNext }) {
 
       {/* 📌 Popup للمدينة */}
       {selectedCity && (
-        <div className="city-popup" role="dialog" aria-modal="true">
-          <div className="city-popup-inner">
+        <div className="origin-city-popup" role="dialog" aria-modal="true">
+          <div className="origin-city-popup-inner">
             <h3>{texts.welcome(selectedCity.label[language])}</h3>
+            <p style={{ 
+              fontSize: '22px', 
+              color: '#F5F5DC', 
+              marginBottom: '25px',
+              textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+              fontFamily: "'Comic Sans MS', cursive"
+            }}>
+              {language === 'en' ? 'Ready for an amazing adventure? 🌟' : 
+               language === 'uz' ? 'Ажойиб сафарга тайёрмисиз? 🌟' : 
+               'Готовы к удивительному приключению? 🌟'}
+            </p>
             <button
               onClick={() => {
                 setSelectedCity(null);
