@@ -3,166 +3,293 @@ import "../style.css";
 import robotImage from "../assets/robot.png";
 import robotVideo from "../assets/robot.mp4";
 import bookImage from "../assets/book.png";
+import bgImage from "../assets/bg.png";
 
 export default function UnlockPage({ language, onUnlock }) {
   const [showVideo, setShowVideo] = useState(false);
   const [videoPlayed, setVideoPlayed] = useState(false);
-  const [message, setMessage] = useState(""); // ✅ رسالة الخطأ
+  const [message, setMessage] = useState("");
+  const [selectedWord, setSelectedWord] = useState(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const starsContainerRef = useRef(null);
+  const robotRef = useRef(null);
 
   const texts = {
     en: {
-      speech: "This book is locked and to open the book you have to choose the right magic word.",
-      title: "Choose the magic word",
-      wrong: "Nice try! Try again.",
+      speech: {
+        display: "🔒 This magical book is locked! To open it, you need to choose the right magic word from below! ✨",
+        speak: "This magical book is locked! To open it, you need to choose the right magic word from below!"
+      },
+      title: "🔮 Choose the Magic Word!",
+      wrong: {
+        display: "❌ Nice try little explorer! Try another word! 🧙‍♂️",
+        speak: "Nice try little explorer! Try another word!"
+      },
+      correct: {
+        display: "🎉 Congratulations! You found the magic word! 📖",
+        speak: "Congratulations! You found the magic word!"
+      },
       options: ["Cabbage", "Cheese", "Curiosity"],
-      next: "Next"
+      next: "Continue Adventure 🚀"
     },
     uz: {
-      speech: "Bu kitob qulflangan, uni ochish uchun to‘g‘ri sehrli so‘zni tanlashingiz kerak.",
-      title: "Sehrli so‘zni tanlang",
-      wrong: "Yaxshi urinish! Yana urinib ko‘ring.",
+      speech: {
+        display: "🔒 Bu sehrli kitob qulflangan! Uni ochish uchun quyidagi sehrli so'zlardan to'g'risini tanlashingiz kerak! ✨",
+        speak: "Bu sehrli kitob qulflangan! Uni ochish uchun quyidagi sehrli so'zlardan to'g'risini tanlashingiz kerak!"
+      },
+      title: "🔮 Sehrli So'zni Tanlang!",
+      wrong: {
+        display: "❌ Yaxshi urinish, kichik tadqiqotchi! Boshqa so'zni sinab ko'ring! 🧙‍♂️",
+        speak: "Yaxshi urinish, kichik tadqiqotchi! Boshqa so'zni sinab ko'ring!"
+      },
+      correct: {
+        display: "🎉 Tabriklaymiz! Siz sehrli so'zni topdingiz! 📖",
+        speak: "Tabriklaymiz! Siz sehrli so'zni topdingiz!"
+      },
       options: ["Karam", "Pishloq", "Qiziquvchanlik"],
-      next: "Keyingi"
+      next: "Sarguzashtni Davom Ettirish 🚀"
     },
     ru: {
-      speech: "Эта книга заперта, и чтобы открыть её, нужно выбрать правильное волшебное слово.",
-      title: "Выберите волшебное слово",
-      wrong: "Хорошая попытка! Попробуйте снова.",
+      speech: {
+        display: "🔒 Эта волшебная книга заперта! Чтобы открыть её, выберите правильное волшебное слово! ✨",
+        speak: "Эта волшебная книга заперта! Чтобы открыть её, выберите правильное волшебное слово!"
+      },
+      title: "🔮 Выберите Волшебное Слово!",
+      wrong: {
+        display: "❌ Хорошая попытка, маленький исследователь! Попробуйте другое слово! 🧙‍♂️",
+        speak: "Хорошая попытка, маленький исследователь! Попробуйте другое слово!"
+      },
+      correct: {
+        display: "🎉 Поздравляем! Вы нашли волшебное слово! 📖",
+        speak: "Поздравляем! Вы нашли волшебное слово!"
+      },
       options: ["Капуста", "Сыр", "Любопытство"],
-      next: "Далее"
+      next: "Продолжить Приключение 🚀"
     },
   };
 
-  // ✅ الكلام بصوت الروبوت
-  const speakText = (text, lang) => {
+  // ✅ دالة تشغيل الصوت المحسنة
+  const speakText = (text, lang, callback) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
 
-      if (lang === "uz") utterance.lang = "tr-TR";
-      else if (lang === "ru") utterance.lang = "ru-RU";
-      else utterance.lang = "en-US";
+      if (lang === "uz") {
+        utterance.lang = "tr-TR";
+        utterance.rate = 0.85;
+      } else if (lang === "ru") {
+        utterance.lang = "ru-RU";
+        utterance.rate = 0.9;
+      } else {
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+      }
 
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+
+      setIsSpeaking(true);
+
+      // تأثيرات بصرية أثناء التحدث
+      if (robotRef.current) {
+        robotRef.current.style.animation = "robot-talking 0.5s ease-in-out infinite";
+      }
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        if (robotRef.current) {
+          robotRef.current.style.animation = "float 4s ease-in-out infinite";
+        }
+        if (callback) setTimeout(callback, 800);
+      };
+
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        if (robotRef.current) {
+          robotRef.current.style.animation = "float 4s ease-in-out infinite";
+        }
+        if (callback) setTimeout(callback, 1000);
+      };
+
       window.speechSynthesis.speak(utterance);
+    } else {
+      if (callback) setTimeout(callback, 2500);
     }
   };
 
   useEffect(() => {
-    speakText(texts[language].speech, language);
+    speakText(texts[language].speech.speak, language);
   }, [language]);
 
-  // ✅ نجوم الخلفية
+  // ✅ نجوم الخلفية المتحركة
   useEffect(() => {
-    const container = starsContainerRef.current;
-    if (!container) return;
+    const createStars = () => {
+      const container = starsContainerRef.current;
+      if (!container) return;
 
-    container.innerHTML = "";
-    for (let i = 0; i < 120; i++) {
-      const star = document.createElement("div");
-      star.className = "star";
-      const size = Math.random() * 2 + 1.5;
-      const left = Math.random() * 100;
-      const top = Math.random() * 100;
-      const duration = Math.random() * 5 + 3;
+      container.innerHTML = "";
+      for (let i = 0; i < 200; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
 
-      star.style.width = `${size}px`;
-      star.style.height = `${size}px`;
-      star.style.left = `${left}%`;
-      star.style.top = `${top}%`;
-      star.style.animationDuration = `${duration}s`;
-      star.style.animationDelay = `${Math.random() * 5}s`;
+        const size = Math.random() * 4 + 2;
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        const duration = Math.random() * 6 + 4;
+        const delay = Math.random() * 8;
 
-      container.appendChild(star);
-    }
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${left}%`;
+        star.style.top = `${top}%`;
+        star.style.animationDuration = `${duration}s`;
+        star.style.animationDelay = `${delay}s`;
+        star.style.opacity = Math.random() * 0.8 + 0.2;
+
+        container.appendChild(star);
+      }
+    };
+
+    createStars();
+    window.addEventListener("resize", createStars);
+    return () => window.removeEventListener("resize", createStars);
   }, []);
 
   const handleChoice = (word) => {
     const correctWord =
-      language === "en" ? "Curiosity" : language === "uz" ? "Qiziquvchanlik" : "Любопытство";
+      language === "en" ? "Curiosity" : 
+      language === "uz" ? "Qiziquvchanlik" : 
+      "Любопытство";
+
+    setSelectedWord(word);
 
     if (word === correctWord) {
-      setMessage(""); // ✅ مسح رسالة الخطأ
-      setShowVideo(true);
+      setMessage(texts[language].correct.display);
+      speakText(texts[language].correct.speak, language, () => {
+        setShowVideo(true);
+      });
     } else {
-      setMessage(texts[language].wrong); // ✅ إظهار رسالة الخطأ
+      setMessage(texts[language].wrong.display);
+      speakText(texts[language].wrong.speak, language);
+    }
+  };
+
+  // تأثير تفاعلي للروبوت
+  const handleRobotClick = () => {
+    if (robotRef.current) {
+      robotRef.current.style.transform = "scale(1.1) rotate(5deg)";
+      setTimeout(() => {
+        if (robotRef.current) {
+          robotRef.current.style.transform = "scale(1) rotate(0deg)";
+        }
+      }, 300);
     }
   };
 
   return (
-    <div className="page" style={{ padding: "10px" }}>
-      {/* ✅ خلفية الكون */}
-      <div className="space-background">
+    <div className="page unlock-page">
+      {/* ✅ خلفية بصورة + نجوم */}
+      <div
+        className="background-image"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <div ref={starsContainerRef} className="stars"></div>
       </div>
+      
+      {/* طبقة شفافة فوق الخلفية */}
+      <div className="background-overlay"></div>
+
+      {/* 🎙️ مؤشر الصوت */}
+      {isSpeaking && (
+        <div className="speaking-indicator">
+          <div className="pulse-animation"></div>
+          🔊 {language === 'en' ? 'Hakim is speaking...' : language === 'uz' ? 'Hakim gapiramiz...' : 'Хаким говорит...'}
+        </div>
+      )}
 
       {/* ✅ الروبوت + البالون */}
-      <div className="robot-container" style={{ marginBottom: "10px" }}>
-        <img src={robotImage} alt="Robot" className="robot-image" />
-        <div className="speech-bubble">
-          <p>{texts[language].speech}</p>
+      <div className="unlock-robot-container">
+        <img 
+          ref={robotRef}
+          src={robotImage} 
+          alt="Robot" 
+          className="unlock-robot-image"
+          onClick={handleRobotClick}
+        />
+        <div className="unlock-speech-bubble">
+          <p className="fade-in-line">
+            {texts[language].speech.display}
+            {isSpeaking && <span className="speaking-dots">...</span>}
+          </p>
         </div>
       </div>
 
       {/* ✅ السؤال والاختيارات */}
-      <div style={{ marginTop: "-20px" }}>
-        <h2 className="page-title" style={{ marginBottom: "8px" }}>
+      <div className="unlock-content">
+        <h2 className="unlock-page-title">
           {texts[language].title}
         </h2>
-        <div className="circle-buttons" style={{ marginBottom: "10px" }}>
-          {texts[language].options.map((w) => (
-            <button
-              key={w}
-              onClick={() => handleChoice(w)}
-              className="glow-button"
-              style={{
-                background: "linear-gradient(145deg, #00c6ff, #0072ff)",
-                width: "120px",
-                height: "120px",
-                fontSize: "16px"
-              }}
-            >
-              {w}
-            </button>
-          ))}
-        </div>
-
-        {/* ✅ رسالة الخطأ تظهر تحت الأزرار */}
+        
+        {/* ✅ رسالة الخطأ أو النجاح */}
         {message && (
-          <p style={{ color: "red", fontSize: "20px", marginTop: "10px" }}>
+          <div className={`unlock-message ${message.includes('❌') ? 'error' : 'success'}`}>
             {message}
-          </p>
+          </div>
         )}
+
+        <div className="unlock-buttons">
+          {texts[language].options.map((word) => {
+            const isCorrect = 
+              language === "en" ? word === "Curiosity" :
+              language === "uz" ? word === "Qiziquvchanlik" :
+              word === "Любопытство";
+            
+            const isSelected = selectedWord === word;
+            
+            return (
+              <button
+                key={word}
+                onClick={() => handleChoice(word)}
+                className={`unlock-choice-button ${isSelected ? (isCorrect ? 'correct' : 'wrong') : ''}`}
+              >
+                <span className="button-emoji">
+                  {word === "Cabbage" || word === "Karam" || word === "Капуста" ? "🥬" :
+                   word === "Cheese" || word === "Pishloq" || word === "Сыр" ? "🧀" : "🔍"}
+                </span>
+                <span className="button-text">{word}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ✅ صورة الكتاب (thumbnail) أو الفيديو */}
-      <div className="media-container" style={{ marginTop: "10px" }}>
+      {/* ✅ صورة الكتاب أو الفيديو */}
+      <div className="unlock-media-container">
         {!showVideo ? (
-          <img
-            src={bookImage}
-            alt="Book Thumbnail"
-            style={{
-              width: "300px",
-              borderRadius: "15px",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
-            }}
-          />
+          <div className="book-container floating-slow">
+            <img
+              src={bookImage}
+              alt="Magic Book"
+              className="unlock-book-image"
+            />
+            <div className="book-lock-effect"></div>
+          </div>
         ) : (
-          <video
-            width="450"
-            controls
-            autoPlay
-            onPlay={() => setVideoPlayed(true)}
-            style={{
-              borderRadius: "15px",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
-            }}
-          >
-            <source src={robotVideo} type="video/mp4" />
-            Your browser does not support video.
-          </video>
+          <div className="video-container">
+            <video
+              className="unlock-video"
+              controls
+              autoPlay
+              muted
+              onPlay={() => setVideoPlayed(true)}
+              onEnded={() => setVideoPlayed(true)}
+            >
+              <source src={robotVideo} type="video/mp4" />
+              Your browser does not support video.
+            </video>
+            <div className="video-sparkles"></div>
+          </div>
         )}
       </div>
 
@@ -170,22 +297,26 @@ export default function UnlockPage({ language, onUnlock }) {
       {videoPlayed && (
         <button
           onClick={onUnlock}
-          style={{
-            marginTop: "12px",
-            padding: "10px 25px",
-            fontSize: "18px",
-            borderRadius: "12px",
-            border: "none",
-            cursor: "pointer",
-            background: "linear-gradient(145deg, #ffd166, #ffb347)",
-            color: "black",
-            fontWeight: "bold",
-            boxShadow: "0 6px 15px rgba(0,0,0,0.4)"
-          }}
+          className="unlock-next-button"
         >
           {texts[language].next}
         </button>
       )}
+
+      {/* ✨ تأثيرات جسيمات إضافية */}
+      <div className="floating-particles">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 10}s`,
+              animationDuration: `${Math.random() * 5 + 3}s`,
+            }}
+          ></div>
+        ))}
+      </div>
     </div>
   );
 }
