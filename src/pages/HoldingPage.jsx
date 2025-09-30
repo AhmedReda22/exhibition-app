@@ -1,4 +1,3 @@
-// HoldingPage.jsx - مع خلفية bg.jpeg
 import React, { useState, useEffect, useRef } from "react";
 import "../style.css";
 import robotImage from "../assets/robot.png";
@@ -6,70 +5,75 @@ import bookImage from "../assets/book.png";
 import startUzImage from "../assets/start-auz.png";
 import startRuImage from "../assets/start-ru.png";
 import startEnImage from "../assets/start-en.png";
-import bgImage from "../assets/bg.jpeg"; // ✅ استيراد الخلفية الجديدة
+import bgImage from "../assets/bg.jpeg";
+import logoImage from "../assets/logo2.png";
+
+// استيراد الخطوط
+import '../fonts/AF-Klapenborg/stylesheet.css';
+import '../fonts/News-Gothic/stylesheet.css';
 
 export default function HoldingPage({ onSelectLanguage }) {
   const [cycleLang, setCycleLang] = useState("en");
   const [visibleLine, setVisibleLine] = useState("");
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const robotRef = useRef(null);
   const speechBubbleRef = useRef(null);
 
   const texts = {
-  en: [
-    "Welcome to the Children's Exhibition Hall!"
-  ],
-  uz: [
-    "Bolalar ko'rgazma zaliga xush kelibsiz!"
-  ],
-  ru: [
-    "Добро пожаловать в Детский выставочный зал!"
-  ],
-};
-
+    en: ["Welcome to the Children's Exhibition Hall!"],
+    uz: ["Bolalar ko'rgazma zaliga xush kelibsiz!"],
+    ru: ["Добро пожаловать в Детский выставочный зал!"],
+  };
 
   const langs = ["en", "uz", "ru"];
 
-  // ✅ دالة تشغيل الصوت
-  const speakText = (text, lang, callback) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+  // 🗣️ دالة تشغيل الصوت المحسنة - نفس HoldingPage
+const speakText = (text, lang, callback) => {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(text);
 
-      if (lang === "uz") {
-        utterance.lang = "tr-TR";
-        utterance.rate = 0.85;
-      } else if (lang === "ru") {
-        utterance.lang = "ru-RU";
-        utterance.rate = 0.9;
-      } else {
-        utterance.lang = "en-US";
-        utterance.rate = 0.9;
-      }
-
-      utterance.pitch = 1.1;
-      utterance.volume = 1;
-
-      setIsSpeaking(true);
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setTimeout(callback, 800);
-      };
-
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        setTimeout(callback, 1000);
-      };
-
-      window.speechSynthesis.speak(utterance);
+    // إصلاح إعدادات اللغة
+    if (lang === "ru") {
+      utterance.lang = "ru-RU";
+      utterance.rate = 0.9;
+    } else if (lang === "uz") {
+      // استخدام اللغة الروسية كبديل للأوزباكية (لأن معظم المتصفحات تدعمها)
+      utterance.lang = "ru-RU"; 
+      utterance.rate = 0.85;
     } else {
-      setTimeout(callback, 2500);
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;
     }
-  };
 
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+
+    setIsSpeaking(true);
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      if (callback) setTimeout(callback, 800);
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      if (callback) setTimeout(callback, 1000);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } else {
+    if (callback) setTimeout(callback, 2500);
+  }
+};
+
+
+
+  // دورة عرض النصوص واللغات
   useEffect(() => {
     let langIndex = 0;
     let lineIndex = 0;
@@ -106,6 +110,48 @@ export default function HoldingPage({ onSelectLanguage }) {
     };
   }, []);
 
+  
+  
+// تأثير الكتابة حرف بحرف + تزامن مع الصوت
+useEffect(() => {
+  if (!visibleLine) return;
+
+  setIsTyping(true);
+  
+  // تقدير مدة النطق (0.06 ثانية لكل حرف تقريباً)
+  const estimatedSpeechDuration = visibleLine.length * 60; // بالمللي ثانية
+  const typingSpeed = Math.max(40, estimatedSpeechDuration / visibleLine.length);
+
+  let i = 0;
+  let currentText = "";
+
+  const typeChar = () => {
+    currentText += visibleLine.charAt(i);
+    setDisplayedText(currentText);
+    i++;
+    if (i >= visibleLine.length) {
+      setIsTyping(false);
+    }
+  };
+
+  // ابدأ الكتابة فوراً بدون مسح النص الحالي
+  const interval = setInterval(() => {
+    if (i < visibleLine.length) {
+      typeChar();
+    } else {
+      clearInterval(interval);
+    }
+  }, typingSpeed);
+
+  return () => clearInterval(interval);
+}, [visibleLine]);
+
+
+
+
+
+
+
   const buttons = [
     { lang: "uz", image: startUzImage, label: "O'zbekiston" },
     { lang: "ru", image: startRuImage, label: "Россия" },
@@ -121,87 +167,88 @@ export default function HoldingPage({ onSelectLanguage }) {
   };
 
   return (
-    <div className="page">
+    <div className="page-container">
       {/* 🖼️ خلفية صورة */}
-      
       <div
         className="background-image"
         style={{ backgroundImage: `url(${bgImage})` }}
       ></div>
 
-
-{/* 🌌 طبقة النجوم */}
-<div className="stars">
-  {Array.from({ length: 40 }).map((_, i) => (
-    <div
-      key={i}
-      className="star"
-      style={{
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        width: `${Math.random() * 3 + 2}px`,
-        height: `${Math.random() * 3 + 2}px`,
-        animationDuration: `${Math.random() * 3 + 2}s`,
-        animationDelay: `${Math.random() * 5}s`,
-      }}
-    />
-  ))}
-</div>
-
+      {/* 🌌 طبقة النجوم */}
+      <div className="stars">
+        {Array.from({ length: 40 }).map((_, i) => (
+          <div
+            key={i}
+            className="star"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              width: `${Math.random() * 3 + 2}px`,
+              height: `${Math.random() * 3 + 2}px`,
+              animationDuration: `${Math.random() * 3 + 2}s`,
+              animationDelay: `${Math.random() * 5}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* 🎙️ مؤشر الصوت */}
       {isSpeaking && (
         <div className="speaking-indicator">
           <div className="pulse-animation"></div>
-          🔊 {cycleLang === 'en' ? 'Speaking...' : cycleLang === 'uz' ? 'Gapiramiz...' : 'Говорим...'}
+          🔊{" "}
+          {cycleLang === "en"
+            ? "Speaking..."
+            : cycleLang === "uz"
+            ? "Gapiramiz..."
+            : "Говорим..."}
         </div>
       )}
 
-      {/* 🤖 الروبوت */}
-      <div className="robot-container-fixed">
-        <img 
-          ref={robotRef}
-          src={robotImage} 
-          alt="Robot Hakim" 
-          className="robot-image-fixed" 
-        />
-        <div ref={speechBubbleRef} className="speech-bubble-with-box">
-          <p key={visibleLine} className="fade-in-line">
-            {visibleLine}
-            {isSpeaking && <span className="speaking-dots">...</span>}
-          </p>
+      {/* المحتوى الرئيسي */}
+      <div className="main-content">
+        {/* 🤖 الروبوت */}
+<div className="robot-container top-left">
+  <img
+    ref={robotRef}
+    src={robotImage}
+    alt="Robot Hakim"
+    className="robot-image"
+  />
+  <div ref={speechBubbleRef} className="speech-bubble">
+    <p key={visibleLine} className="fade-in-line">
+      {displayedText}
+      {isTyping && <span className="cursor">|</span>}
+    </p>
+  </div>
+</div>
+
+        {/* 📖 الكتاب */}
+        <div className="book-container">
+          <img src={bookImage} alt="Magic Book" className="book-image-new" />
         </div>
-      </div>
 
-      {/* 📖 الكتاب */}
-      <div className="book-container-huge">
-        <img src={bookImage} alt="Magic Book" className="book-image-huge" />
-      </div>
+        {/* 🟢 أزرار اختيار اللغة */}
+        <div className="vertical-buttons">
+          {buttons.map((btn) => (
+            <button
+              key={btn.lang}
+              onClick={() => {
+                window.speechSynthesis.cancel();
+                handleLanguageSelect(btn.lang);
+              }}
+              className="language-button"
+            >
+              <img src={btn.image} alt={btn.label} className="button-image" />
+            </button>
+          ))}
+        </div>
 
-      {/* 🟢 أزرار اختيار اللغة */}
-      <div className="vertical-buttons">
-        {buttons.map((btn) => (
-          <button
-            key={btn.lang}
-            onClick={() => {
-              window.speechSynthesis.cancel();
-              handleLanguageSelect(btn.lang);
-            }}
-            className="language-button"
-          >
-            <img src={btn.image} alt={btn.label} className="button-image" />
-          </button>
-        ))}
-      </div>
-
-      {/* 🔘 مؤشر التقدم */}
-      <div className="progress-indicator">
-        {[0, 1, 2].map((index) => (
-          <div
-            key={index}
-            className={`progress-dot ${index === currentTextIndex ? 'active' : ''}`}
-          />
-        ))}
+        {/* 🏢 اللوجو */}
+        <div className="logo-container">
+          <div className="produced-by">Produced by</div>
+          <img src={logoImage} alt="Event Logo" className="event-logo" />
+        </div>
       </div>
     </div>
   );
