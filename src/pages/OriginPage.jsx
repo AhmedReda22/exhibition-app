@@ -1,16 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../style.css";
 import robotImage from "../assets/robot.png";
-import bgImage from "../assets/bg.png";
+import bgImage from "../assets/bg.jpeg"; // نفس خلفية HoldingPage
 
 export default function OriginPage({ language = "en", onNext }) {
   const [selectedCity, setSelectedCity] = useState(null);
   const [bubbleText, setBubbleText] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [clickedCity, setClickedCity] = useState(null);
-  const [activeEffects, setActiveEffects] = useState([]);
   const starsContainerRef = useRef(null);
   const effectsContainerRef = useRef(null);
+// دالة لتحديد حجم النص بناءً على طوله
+const getTextSizeClass = (text) => {
+  if (!text) return '';
+  const length = text.length;
+  if (length > 100) return 'very-long-text';
+  if (length > 60) return 'long-text';
+  if (length > 30) return 'medium-text';
+  return '';
+};
 
   const cities = [
     { id: "tashkent", label: { en: "Tashkent", uz: "Toshkent", ru: "Ташкент" }, x: 520, y: 140 },
@@ -49,7 +57,7 @@ export default function OriginPage({ language = "en", onNext }) {
 
   const texts = localized[language] || localized.en;
 
-  // 🌌 إنشاء النجوم المتحركة
+  // 🌌 إنشاء النجوم المتحركة - نفس HoldingPage
   useEffect(() => {
     const createStars = () => {
       const container = starsContainerRef.current;
@@ -57,15 +65,15 @@ export default function OriginPage({ language = "en", onNext }) {
 
       container.innerHTML = "";
 
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 40; i++) {
         const star = document.createElement("div");
         star.className = "star";
 
-        const size = Math.random() * 4 + 2;
+        const size = Math.random() * 3 + 2;
         const left = Math.random() * 100;
         const top = Math.random() * 100;
-        const duration = Math.random() * 6 + 4;
-        const delay = Math.random() * 8;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 5;
 
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
@@ -73,7 +81,6 @@ export default function OriginPage({ language = "en", onNext }) {
         star.style.top = `${top}%`;
         star.style.animationDuration = `${duration}s`;
         star.style.animationDelay = `${delay}s`;
-        star.style.opacity = Math.random() * 0.8 + 0.2;
 
         container.appendChild(star);
       }
@@ -84,44 +91,46 @@ export default function OriginPage({ language = "en", onNext }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 🗣️ دالة تشغيل الصوت المحسنة
-  const speakText = (text, lang, callback) => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+  // 🗣️ دالة تشغيل الصوت المحسنة - نفس HoldingPage
+const speakText = (text, lang, callback) => {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(text);
 
-      if (lang === "ru") {
-        utterance.lang = "ru-RU";
-        utterance.rate = 0.9;
-      } else if (lang === "uz") {
-        utterance.lang = "tr-TR";
-        utterance.rate = 0.85;
-      } else {
-        utterance.lang = "en-US";
-        utterance.rate = 0.9;
-      }
-
-      utterance.pitch = 1.2;
-      utterance.volume = 1;
-
-      setIsSpeaking(true);
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        if (callback) setTimeout(callback, 800);
-      };
-
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        if (callback) setTimeout(callback, 1000);
-      };
-
-      window.speechSynthesis.speak(utterance);
+    // إصلاح إعدادات اللغة
+    if (lang === "ru") {
+      utterance.lang = "ru-RU";
+      utterance.rate = 0.9;
+    } else if (lang === "uz") {
+      // استخدام اللغة الروسية كبديل للأوزباكية (لأن معظم المتصفحات تدعمها)
+      utterance.lang = "ru-RU"; 
+      utterance.rate = 0.85;
     } else {
-      if (callback) setTimeout(callback, 2500);
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;
     }
-  };
+
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+
+    setIsSpeaking(true);
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      if (callback) setTimeout(callback, 800);
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      if (callback) setTimeout(callback, 1000);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } else {
+    if (callback) setTimeout(callback, 2500);
+  }
+};
 
   // عند تحميل الصفحة: قول جملة Hakim الأولى
   useEffect(() => {
@@ -129,7 +138,7 @@ export default function OriginPage({ language = "en", onNext }) {
     speakText(texts.hakimHello, language);
   }, [language]);
 
-  // إنشاء تأثيرات النقر
+  // إنشاء تأثيرات النقر المحسنة
   const createClickEffects = (city, event) => {
     const container = effectsContainerRef.current;
     if (!container) return;
@@ -202,17 +211,15 @@ export default function OriginPage({ language = "en", onNext }) {
   };
 
   return (
-    <div className="origin-page">
-      {/* 🌌 خلفية بصورة + نجوم */}
+    <div className="page-container origin-page">
+      {/* 🌌 خلفية النجوم - نفس HoldingPage */}
       <div
         className="background-image"
         style={{ backgroundImage: `url(${bgImage})` }}
-      >
-        <div ref={starsContainerRef} className="stars"></div>
-      </div>
-      
-      {/* طبقة شفافة فوق الخلفية */}
-      <div className="background-overlay"></div>
+      ></div>
+
+      {/* 🌌 طبقة النجوم */}
+      <div ref={starsContainerRef} className="stars"></div>
 
       {/* حاوية تأثيرات النقر */}
       <div ref={effectsContainerRef} style={{
@@ -225,7 +232,7 @@ export default function OriginPage({ language = "en", onNext }) {
         zIndex: 100
       }}></div>
 
-      {/* 🎙️ مؤشر الصوت */}
+      {/* 🎙️ مؤشر الصوت - نفس HoldingPage */}
       {isSpeaking && (
         <div className="speaking-indicator">
           <div className="pulse-animation"></div>
@@ -233,137 +240,139 @@ export default function OriginPage({ language = "en", onNext }) {
         </div>
       )}
 
-      {/* 🤖 الروبوت + البالون */}
-      <div className="origin-robot-container">
+      {/* 🤖 الروبوت + البالون - نفس HoldingPage */}
+      <div className="robot-container top-left origin-robot-container">
         <img 
           src={robotImage} 
           alt="Hakim Robot" 
-          className="origin-robot-image"
+          className="robot-image origin-robot-image"
         />
 
-        <div className="origin-speech-bubble">
-          <p style={{ margin: 0, fontSize: '24px', lineHeight: '1.4' }}>
-            {bubbleText}
-            {isSpeaking && <span style={{ animation: 'blink 1s infinite' }}>...</span>}
-          </p>
+        <div className={`speech-bubble origin-speech-bubble ${getTextSizeClass(bubbleText)}`}>
+  <p style={{ margin: 0, lineHeight: '1.4' }}>
+    {bubbleText}
+    {isSpeaking && <span style={{ animation: 'blink 1s infinite' }}>...</span>}
+  </p>
+</div>
+      </div>
+
+      {/* 🗺️ محتوى الصفحة الرئيسي */}
+      <div className="main-content origin-content">
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h2 className="origin-page-title">{texts.where}</h2>
+          <p className="origin-page-subtitle">{texts.hint}</p>
         </div>
-      </div>
 
-      {/* 🗺️ الخريطة */}
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h2 className="origin-page-title">{texts.where}</h2>
-        <p className="origin-page-subtitle">{texts.hint}</p>
-      </div>
+        <div className="origin-map-container">
+          <div className="origin-city-map">
+            <svg
+              viewBox="0 0 800 500"
+              style={{ width: "100%", maxWidth: "1000px", height: "auto" }}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <defs>
+                <linearGradient id="originMapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8B4513" />
+                  <stop offset="50%" stopColor="#A0522D" />
+                  <stop offset="100%" stopColor="#CD853F" />
+                </linearGradient>
+                <radialGradient id="cityGradient">
+                  <stop offset="0%" stopColor="#FFD700" />
+                  <stop offset="100%" stopColor="#CD853F" />
+                </radialGradient>
+                
+                {/* تأثير توهج للمدن المحددة */}
+                <filter id="glowEffect">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
 
-      <div className="origin-map-container">
-        <div className="origin-city-map">
-          <svg
-            viewBox="0 0 800 500"
-            style={{ width: "100%", maxWidth: "1000px", height: "auto" }}
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <defs>
-              <linearGradient id="originMapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#8B4513" />
-                <stop offset="50%" stopColor="#A0522D" />
-                <stop offset="100%" stopColor="#CD853F" />
-              </linearGradient>
-              <radialGradient id="cityGradient">
-                <stop offset="0%" stopColor="#FFD700" />
-                <stop offset="100%" stopColor="#CD853F" />
-              </radialGradient>
-              
-              {/* تأثير توهج للمدن المحددة */}
-              <filter id="glowEffect">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
+              <rect x="0" y="0" width="800" height="500" fill="url(#originMapGradient)" rx="20" ry="20" />
 
-            <rect x="0" y="0" width="800" height="500" fill="url(#originMapGradient)" rx="20" ry="20" />
+              <g opacity="0.2">
+                <path
+                  d="M0,250 C120,200 240,280 360,240 C480,200 600,260 800,230 L800,500 L0,500 Z"
+                  fill="#ffffff"
+                />
+                <path
+                  d="M0,300 C150,250 300,350 450,300 C600,250 700,320 800,280 L800,500 L0,500 Z"
+                  fill="#F5F5DC"
+                  opacity="0.15"
+                />
+              </g>
 
-            <g opacity="0.2">
-              <path
-                d="M0,250 C120,200 240,280 360,240 C480,200 600,260 800,230 L800,500 L0,500 Z"
-                fill="#ffffff"
-              />
-              <path
-                d="M0,300 C150,250 300,350 450,300 C600,250 700,320 800,280 L800,500 L0,500 Z"
-                fill="#F5F5DC"
-                opacity="0.15"
-              />
-            </g>
-
-            {cities.map((c) => {
-              const isSelected = selectedCity?.id === c.id;
-              const isClicked = clickedCity === c.id;
-              
-              return (
-                <g
-                  key={c.id}
-                  transform={`translate(${c.x}, ${c.y})`}
-                  className={`origin-city-point ${isClicked ? 'city-click-effect city-vibrate city-color-change' : ''} ${isSelected ? 'city-selected-permanent' : ''}`}
-                  onClick={(e) => handleCityClick(c, e)}
-                  role="button"
-                  tabIndex="0"
-                  style={{ cursor: "pointer" }}
-                >
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="20"
-                    fill={isSelected ? "url(#cityGradient)" : "#FFD700"}
-                    stroke={isSelected ? "#8B4513" : "#5D4037"}
-                    strokeWidth={isSelected ? "3" : "2"}
-                    filter={isSelected ? "url(#glowEffect)" : "none"}
-                  />
-                  <text
-                    x="35"
-                    y="8"
-                    fontSize="18"
-                    fill={isSelected ? "#8B4513" : "#FFFFFF"}
-                    fontFamily="'Comic Sans MS', 'Arial Rounded MT Bold', cursive"
-                    fontWeight="bold"
-                    textShadow="2px 2px 4px rgba(0, 0, 0, 0.8)"
+              {cities.map((c) => {
+                const isSelected = selectedCity?.id === c.id;
+                const isClicked = clickedCity === c.id;
+                
+                return (
+                  <g
+                    key={c.id}
+                    transform={`translate(${c.x}, ${c.y})`}
+                    className={`origin-city-point ${isClicked ? 'city-click-effect city-vibrate city-color-change' : ''} ${isSelected ? 'city-selected-permanent' : ''}`}
+                    onClick={(e) => handleCityClick(c, e)}
+                    role="button"
+                    tabIndex="0"
+                    style={{ cursor: "pointer" }}
                   >
-                    {c.label[language]}
-                  </text>
-                  
-                  {/* تأثير إضافي مرئي */}
-                  {isClicked && (
                     <circle
                       cx="0"
                       cy="0"
-                      r="25"
-                      fill="none"
-                      stroke="#FFFFFF"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                      opacity="0.8"
+                      r="20"
+                      fill={isSelected ? "url(#cityGradient)" : "#FFD700"}
+                      stroke={isSelected ? "#8B4513" : "#5D4037"}
+                      strokeWidth={isSelected ? "3" : "2"}
+                      filter={isSelected ? "url(#glowEffect)" : "none"}
+                    />
+                    <text
+                      x="35"
+                      y="8"
+                      fontSize="18"
+                      fill={isSelected ? "#8B4513" : "#FFFFFF"}
+                      fontFamily="'Comic Sans MS', 'Arial Rounded MT Bold', cursive"
+                      fontWeight="bold"
+                      textShadow="2px 2px 4px rgba(0, 0, 0, 0.8)"
                     >
-                      <animate
-                        attributeName="r"
-                        from="25"
-                        to="40"
-                        dur="0.8s"
-                        fill="freeze"
-                      />
-                      <animate
-                        attributeName="opacity"
-                        from="0.8"
-                        to="0"
-                        dur="0.8s"
-                        fill="freeze"
-                      />
-                    </circle>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+                      {c.label[language]}
+                    </text>
+                    
+                    {/* تأثير إضافي مرئي */}
+                    {isClicked && (
+                      <circle
+                        cx="0"
+                        cy="0"
+                        r="25"
+                        fill="none"
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                        opacity="0.8"
+                      >
+                        <animate
+                          attributeName="r"
+                          from="25"
+                          to="40"
+                          dur="0.8s"
+                          fill="freeze"
+                        />
+                        <animate
+                          attributeName="opacity"
+                          from="0.8"
+                          to="0"
+                          dur="0.8s"
+                          fill="freeze"
+                        />
+                      </circle>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
       </div>
 
