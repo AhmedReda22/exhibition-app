@@ -8,9 +8,8 @@ import startEnImage from "../assets/start-en.png";
 import bgImage from "../assets/bg.jpeg";
 import logoImage from "../assets/logo2.png";
 
-// استيراد الخطوط
-import '../fonts/AF-Klapenborg/stylesheet.css';
-import '../fonts/News-Gothic/stylesheet.css';
+
+
 
 export default function HoldingPage({ onSelectLanguage }) {
   const [cycleLang, setCycleLang] = useState("en");
