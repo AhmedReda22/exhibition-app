@@ -3,7 +3,8 @@ import "../style.css";
 import robotImage from "../assets/robot.png";
 import videoSrc from "../assets/robot.mp4";
 import mapImage from "../assets/map.png";
-import bgImage from "../assets/bg.png";
+import bgImage from "../assets/bg.jpeg"; // نفس خلفية OriginPage
+import boxImage from "../assets/box.png"; // نفس صندوق OriginPage
 
 export default function HistoryPage({ language = "en", onNext }) {
   const [bubbleText, setBubbleText] = useState("");
@@ -14,6 +15,17 @@ export default function HistoryPage({ language = "en", onNext }) {
   const videoRef = useRef(null);
   const starsContainerRef = useRef(null);
   const robotRef = useRef(null);
+  const effectsContainerRef = useRef(null);
+
+  // دالة لتحديد حجم النص بناءً على طوله - نفس OriginPage
+  const getTextSizeClass = (text) => {
+    if (!text) return '';
+    const length = text.length;
+    if (length > 100) return 'very-long-text';
+    if (length > 60) return 'long-text';
+    if (length > 30) return 'medium-text';
+    return '';
+  };
 
   const texts = {
     en: {
@@ -83,7 +95,7 @@ export default function HistoryPage({ language = "en", onNext }) {
 
   const t = texts[language] || texts.en;
 
-  // ✅ دالة تشغيل الصوت المحسنة
+  // ✅ دالة تشغيل الصوت المحسنة - نفس OriginPage
   const speakText = (text, lang, callback) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -106,24 +118,13 @@ export default function HistoryPage({ language = "en", onNext }) {
 
       setIsSpeaking(true);
 
-      // تأثيرات بصرية أثناء التحدث
-      if (robotRef.current) {
-        robotRef.current.style.animation = "robot-talking 0.5s ease-in-out infinite";
-      }
-
       utterance.onend = () => {
         setIsSpeaking(false);
-        if (robotRef.current) {
-          robotRef.current.style.animation = "float 4s ease-in-out infinite";
-        }
         if (callback) setTimeout(callback, 800);
       };
 
       utterance.onerror = () => {
         setIsSpeaking(false);
-        if (robotRef.current) {
-          robotRef.current.style.animation = "float 4s ease-in-out infinite";
-        }
         if (callback) setTimeout(callback, 1000);
       };
 
@@ -133,22 +134,22 @@ export default function HistoryPage({ language = "en", onNext }) {
     }
   };
 
-  // 🌌 نجوم الخلفية المتحركة
+  // 🌌 نجوم الخلفية المتحركة - نفس OriginPage
   useEffect(() => {
     const createStars = () => {
       const container = starsContainerRef.current;
       if (!container) return;
 
       container.innerHTML = "";
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 40; i++) {
         const star = document.createElement("div");
         star.className = "star";
 
-        const size = Math.random() * 4 + 2;
+        const size = Math.random() * 3 + 2;
         const left = Math.random() * 100;
         const top = Math.random() * 100;
-        const duration = Math.random() * 6 + 4;
-        const delay = Math.random() * 8;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 5;
 
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
@@ -156,7 +157,6 @@ export default function HistoryPage({ language = "en", onNext }) {
         star.style.top = `${top}%`;
         star.style.animationDuration = `${duration}s`;
         star.style.animationDelay = `${delay}s`;
-        star.style.opacity = Math.random() * 0.8 + 0.2;
 
         container.appendChild(star);
       }
@@ -167,63 +167,78 @@ export default function HistoryPage({ language = "en", onNext }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 📝 تأثير الكتابة مع الصوت
-  useEffect(() => {
-    if (!window.speechSynthesis) return;
+  // إنشاء تأثيرات النقر المحسنة - نفس OriginPage
+  const createClickEffects = (city, event) => {
+    const container = effectsContainerRef.current;
+    if (!container) return;
 
-    const video = videoRef.current;
-    if (!video) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-    // إعادة التعيين
-    setBubbleText("");
-    setCurrentWordIndex(0);
-    window.speechSynthesis.cancel();
+    // تأثير الدائرة المتوسعة
+    const ring = document.createElement("div");
+    ring.className = "city-ring";
+    ring.style.left = `${centerX}px`;
+    ring.style.top = `${centerY}px`;
+    container.appendChild(ring);
 
-    const cleanText = t.hakimHello.replace(/[🔍🌍🏛️🗺️🌟🏰🎨🌄👑🚪🏭🪷🌅📜🏔️🕌🏛️🌟]/g, '');
-    const words = cleanText.split(" ");
-    let currentIndex = 0;
+    // تأثير الضوء الساطع
+    const light = document.createElement("div");
+    light.className = "city-light-flash";
+    light.style.left = `${centerX}px`;
+    light.style.top = `${centerY}px`;
+    container.appendChild(light);
 
-    const utter = new SpeechSynthesisUtterance(cleanText);
+    // تأثير النجوم
+    const stars = document.createElement("div");
+    stars.className = "city-stars";
+    stars.style.left = `${centerX}px`;
+    stars.style.top = `${centerY}px`;
     
-    if (language === "ru") {
-      utter.lang = "ru-RU";
-    } else if (language === "uz") {
-      utter.lang = "tr-TR";
-    } else {
-      utter.lang = "en-US";
+    for (let i = 0; i < 8; i++) {
+      const star = document.createElement("div");
+      star.className = "city-star";
+      star.innerHTML = "⭐";
+      
+      const angle = (Math.PI * 2 * i) / 8;
+      const distance = 60;
+      const starX = Math.cos(angle) * distance;
+      const starY = Math.sin(angle) * distance;
+      
+      star.style.setProperty('--star-x', `${starX}px`);
+      star.style.setProperty('--star-y', `${starY}px`);
+      star.style.animationDelay = `${i * 0.1}s`;
+      
+      stars.appendChild(star);
     }
+    
+    container.appendChild(stars);
 
-    utter.rate = 0.9;
-    utter.pitch = 1.1;
+    // تنظيف العناصر بعد انتهاء التحريك
+    setTimeout(() => {
+      if (ring.parentNode) ring.parentNode.removeChild(ring);
+      if (light.parentNode) light.parentNode.removeChild(light);
+      if (stars.parentNode) stars.parentNode.removeChild(stars);
+    }, 1000);
+  };
 
-    utter.onboundary = (event) => {
-      if (event.name === "word") {
-        if (currentIndex < words.length) {
-          currentIndex++;
-          setCurrentWordIndex(currentIndex);
-          setBubbleText(t.hakimHello.split(" ").slice(0, currentIndex).join(" "));
-        }
-      }
-    };
-
-    utter.onend = () => {
-      setBubbleText(t.hakimHello);
-      setCurrentWordIndex(words.length);
-    };
-
-    // تشغيل الفيديو والصوت معاً
-    const handlePlay = () => {
-      video.play();
-      window.speechSynthesis.speak(utter);
-    };
-
-    video.addEventListener("play", handlePlay);
-
-    return () => {
-      video.removeEventListener("play", handlePlay);
-      window.speechSynthesis.cancel();
-    };
+  // عند تحميل الصفحة: قول جملة Hakim الأولى - نفس OriginPage
+  useEffect(() => {
+    setBubbleText(t.hakimHello);
+    speakText(t.hakimHello, language);
   }, [language, t.hakimHello]);
+
+  // تأثير عند النقر على المدينة
+  const handleCityClick = (city, event) => {
+    setActiveCity(city);
+    createClickEffects(city, event);
+    
+    // إزالة التأثير بعد 5 ثواني
+    setTimeout(() => {
+      setActiveCity(null);
+    }, 5000);
+  };
 
   // تأثير تفاعلي للروبوت
   const handleRobotClick = () => {
@@ -237,29 +252,29 @@ export default function HistoryPage({ language = "en", onNext }) {
     }
   };
 
-  // تأثير عند النقر على المدينة
-  const handleCityClick = (city, event) => {
-    setActiveCity(city);
-    // إزالة التأثير بعد 5 ثواني
-    setTimeout(() => {
-      setActiveCity(null);
-    }, 5000);
-  };
-
   return (
-    <div className="page history-page">
-      {/* 🌌 خلفية بصورة + نجوم */}
+    <div className="page-container history-page">
+      {/* 🌌 خلفية النجوم - نفس OriginPage */}
       <div
         className="background-image"
         style={{ backgroundImage: `url(${bgImage})` }}
-      >
-        <div ref={starsContainerRef} className="stars"></div>
-      </div>
-      
-      {/* طبقة شفافة فوق الخلفية */}
-      <div className="background-overlay"></div>
+      ></div>
 
-      {/* 🎙️ مؤشر الصوت */}
+      {/* 🌌 طبقة النجوم */}
+      <div ref={starsContainerRef} className="stars"></div>
+
+      {/* حاوية تأثيرات النقر */}
+      <div ref={effectsContainerRef} style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 100
+      }}></div>
+
+      {/* 🎙️ مؤشر الصوت - نفس OriginPage */}
       {isSpeaking && (
         <div className="speaking-indicator">
           <div className="pulse-animation"></div>
@@ -267,96 +282,102 @@ export default function HistoryPage({ language = "en", onNext }) {
         </div>
       )}
 
-      {/* 🤖 الروبوت + البالون */}
-      <div className="history-robot-container">
+      {/* 🤖 الروبوت + البالون - نفس OriginPage */}
+      <div className="robot-container top-left history-robot-container">
         <img 
           ref={robotRef}
           src={robotImage} 
           alt="Hakim Robot" 
-          className="history-robot-image"
+          className="robot-image history-robot-image"
           onClick={handleRobotClick}
         />
-        <div className="history-speech-bubble">
-          <p className="fade-in-line">
+
+        <div className={`speech-bubble history-speech-bubble ${getTextSizeClass(bubbleText)}`}>
+          <p style={{ margin: 0, lineHeight: '1.4' }}>
             {bubbleText}
-            {isSpeaking && <span className="speaking-dots">...</span>}
+            {isSpeaking && <span style={{ animation: 'blink 1s infinite' }}>...</span>}
           </p>
         </div>
       </div>
 
-      {/* 🎥 الفيديو أو الخريطة */}
-      <div className="history-media-container">
-        {!showMap ? (
-          <div className="video-container">
-            <video
-              ref={videoRef}
-              src={videoSrc}
-              autoPlay
-              muted
-              onEnded={() => setShowMap(true)}
-              className="history-video-player"
-            />
-            <div className="video-overlay">
-              <p className="video-hint">🎬 Playing the amazing history...</p>
-            </div>
-          </div>
-        ) : (
-          <div className="history-map-container">
-            <h3 className="map-title">{t.mapHint}</h3>
-            <div className="map-wrapper">
-              <img src={mapImage} alt="Silk Road Map" className="history-map-image" />
-              {t.cities.map((city) => (
-                <div
-                  key={city.id}
-                  className={`history-city-dot ${activeCity?.id === city.id ? 'active' : ''}`}
-                  style={{ left: city.x, top: city.y }}
-                  onClick={(e) => handleCityClick(city, e)}
-                >
-                  <div className="city-pulse"></div>
-                </div>
-              ))}
-            </div>
-            
-            {/* معلومات المدينة */}
-            {activeCity && (
-              <div className="history-city-popup">
-                <div className="city-popup-content">
-                  <h3 className="city-name">{activeCity.name}</h3>
-                  <p className="city-info">{activeCity.info}</p>
-                  <button 
-                    className="city-close-btn"
-                    onClick={() => setActiveCity(null)}
-                  >
-                    ✕
-                  </button>
-                </div>
+      {/* 🗺️ محتوى الصفحة الرئيسي */}
+      <div className="main-content history-content">
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h2 className="history-page-title">
+            {language === 'en' ? 'Discover Ancient History' : 
+             language === 'uz' ? 'Qadimiy Tarixni Kashf Etish' : 
+             'Откройте Древнюю Историю'}
+          </h2>
+          <p className="history-page-subtitle">{t.mapHint}</p>
+        </div>
+
+        <div className="history-media-container">
+          {!showMap ? (
+            <div className="video-container">
+              <video
+                ref={videoRef}
+                src={videoSrc}
+                autoPlay
+                muted
+                onEnded={() => setShowMap(true)}
+                className="history-video-player"
+              />
+              <div className="video-overlay">
+                <p className="video-hint">
+                  {language === 'en' ? '🎬 Playing the amazing history...' : 
+                   language === 'uz' ? '🎬 Ajoyib tarix ijro etilmoqda...' : 
+                   '🎬 Воспроизведение удивительной истории...'}
+                </p>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="history-map-container">
+              <div className="history-map-wrapper">
+                <img src={mapImage} alt="Silk Road Map" className="history-map-image" />
+                {t.cities.map((city) => (
+                  <div
+                    key={city.id}
+                    className={`history-city-dot ${activeCity?.id === city.id ? 'active' : ''}`}
+                    style={{ left: city.x, top: city.y }}
+                    onClick={(e) => handleCityClick(city, e)}
+                  >
+                    <div className="city-pulse"></div>
+                    <span className="city-name-label">{city.name}</span>
+                  </div>
+                ))}
+              </div>
+              
+              {/* معلومات المدينة - مع خلفية box.png */}
+              {activeCity && (
+                <div className="history-city-popup">
+                  <div className={`history-city-popup-inner ${getTextSizeClass(activeCity.info)}`}>
+                    <h3>{activeCity.name}</h3>
+                    <p>
+                      {activeCity.info}
+                    </p>
+                    <button 
+                      onClick={() => setActiveCity(null)}
+                    >
+                      {language === 'en' ? 'Close' : 
+                       language === 'uz' ? 'Yopish' : 
+                       'Закрыть'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ⏭️ زرار Next يظهر بعد الخريطة */}
       {showMap && (
-        <button className="history-next-button" onClick={onNext}>
-          {t.next}
-        </button>
+        <div className="history-next-container">
+          <button className="history-next-button" onClick={onNext}>
+            {t.next}
+          </button>
+        </div>
       )}
-
-      {/* ✨ تأثيرات جسيمات إضافية */}
-      <div className="floating-particles">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 10}s`,
-              animationDuration: `${Math.random() * 5 + 3}s`,
-            }}
-          ></div>
-        ))}
-      </div>
     </div>
   );
 }
