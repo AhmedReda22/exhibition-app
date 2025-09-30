@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import "../style.css";
 import robotImage from "../assets/robot.png";
 import videoSrc from "../assets/robot.mp4";
-import bgImage from "../assets/bg.png";
+import bgImage from "../assets/bg.jpeg"; // نفس خلفية OriginPage
+import boxImage from "../assets/box.png"; // نفس صندوق OriginPage
 
 export default function RoomsPage({ language, onFinish }) {
   const [bubbleText, setBubbleText] = useState("");
@@ -12,13 +13,21 @@ export default function RoomsPage({ language, onFinish }) {
   const videoRef = useRef(null);
   const starsContainerRef = useRef(null);
   const robotRef = useRef(null);
+  const effectsContainerRef = useRef(null);
+
+  // دالة لتحديد حجم النص بناءً على طوله - نفس OriginPage
+  const getTextSizeClass = (text) => {
+    if (!text) return '';
+    const length = text.length;
+    if (length > 100) return 'very-long-text';
+    if (length > 60) return 'long-text';
+    if (length > 30) return 'medium-text';
+    return '';
+  };
 
   const texts = {
     en: {
-      hakimHello: {
-        display: "🌟 To explore more amazing stories and meet legendary characters, you can visit our magical rooms! Each room holds unique adventures waiting for you! 🏰✨",
-        speak: "To explore more amazing stories and meet legendary characters, you can visit our magical rooms! Each room holds unique adventures waiting for you!"
-      },
+      hakimHello: "🌟 To explore more amazing stories and meet legendary characters, you can visit our magical rooms! Each room holds unique adventures waiting for you! 🏰✨",
       button: "Begin Your Magical Journey 🚀",
       roomsTitle: "🎪 Choose Your Adventure Room!",
       rooms: [
@@ -53,10 +62,7 @@ export default function RoomsPage({ language, onFinish }) {
       ]
     },
     uz: {
-      hakimHello: {
-        display: "🌟 Ko'proq ajoyib hikoyalarni kashf etish va afsonaviy qahramonlar bilan uchrashish uchun bizning sehrli xonalarimizga tashrif buyuring! Har bir xona sizni kutayotgan noyob sarguzashtlarga ega! 🏰✨",
-        speak: "Ko'proq ajoyib hikoyalarni kashf etish va afsonaviy qahramonlar bilan uchrashish uchun bizning sehrli xonalarimizga tashrif buyuring! Har bir xona sizni kutayotgan noyob sarguzashtlarga ega!"
-      },
+      hakimHello: "🌟 Ko'proq ajoyib hikoyalarni kashf etish va afsonaviy qahramonlar bilan uchrashish uchun bizning sehrli xonalarimizga tashrif buyuring! Har bir xona sizni kutayotgan noyob sarguzashtlarga ega! 🏰✨",
       button: "Sehrli Safaringizni Boshlang 🚀",
       roomsTitle: "🎪 O'zingizning Sarguzasht Xonangizni Tanlang!",
       rooms: [
@@ -91,10 +97,7 @@ export default function RoomsPage({ language, onFinish }) {
       ]
     },
     ru: {
-      hakimHello: {
-        display: "🌟 Чтобы исследовать больше удивительных историй и встретить легендарных персонажей, вы можете посетить наши волшебные залы! Каждый зал хранит уникальные приключения, ожидающие вас! 🏰✨",
-        speak: "Чтобы исследовать больше удивительных историй и встретить легендарных персонажей, вы можете посетить наши волшебные залы! Каждый зал хранит уникальные приключения, ожидающие вас!"
-      },
+      hakimHello: "🌟 Чтобы исследовать больше удивительных историй и встретить легендарных персонажей, вы можете посетить наши волшебные залы! Каждый зал хранит уникальные приключения, ожидающие вас! 🏰✨",
       button: "Начните Своё Волшебное Путешествие 🚀",
       roomsTitle: "🎪 Выберите Свою Комнату Приключений!",
       rooms: [
@@ -132,7 +135,7 @@ export default function RoomsPage({ language, onFinish }) {
 
   const t = texts[language] || texts.en;
 
-  // ✅ دالة تشغيل الصوت المحسنة
+  // ✅ دالة تشغيل الصوت المحسنة - نفس OriginPage
   const speakText = (text, lang, callback) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -155,24 +158,13 @@ export default function RoomsPage({ language, onFinish }) {
 
       setIsSpeaking(true);
 
-      // تأثيرات بصرية أثناء التحدث
-      if (robotRef.current) {
-        robotRef.current.style.animation = "robot-talking 0.5s ease-in-out infinite";
-      }
-
       utterance.onend = () => {
         setIsSpeaking(false);
-        if (robotRef.current) {
-          robotRef.current.style.animation = "float 4s ease-in-out infinite";
-        }
         if (callback) setTimeout(callback, 800);
       };
 
       utterance.onerror = () => {
         setIsSpeaking(false);
-        if (robotRef.current) {
-          robotRef.current.style.animation = "float 4s ease-in-out infinite";
-        }
         if (callback) setTimeout(callback, 1000);
       };
 
@@ -182,22 +174,22 @@ export default function RoomsPage({ language, onFinish }) {
     }
   };
 
-  // 🌌 نجوم الخلفية المتحركة
+  // 🌌 نجوم الخلفية المتحركة - نفس OriginPage
   useEffect(() => {
     const createStars = () => {
       const container = starsContainerRef.current;
       if (!container) return;
 
       container.innerHTML = "";
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 40; i++) {
         const star = document.createElement("div");
         star.className = "star";
 
-        const size = Math.random() * 4 + 2;
+        const size = Math.random() * 3 + 2;
         const left = Math.random() * 100;
         const top = Math.random() * 100;
-        const duration = Math.random() * 6 + 4;
-        const delay = Math.random() * 8;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 5;
 
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
@@ -205,7 +197,6 @@ export default function RoomsPage({ language, onFinish }) {
         star.style.top = `${top}%`;
         star.style.animationDuration = `${duration}s`;
         star.style.animationDelay = `${delay}s`;
-        star.style.opacity = Math.random() * 0.8 + 0.2;
 
         container.appendChild(star);
       }
@@ -216,37 +207,81 @@ export default function RoomsPage({ language, onFinish }) {
     return () => window.removeEventListener("resize", createStars);
   }, []);
 
-  // 📝 تأثير الكتابة مع الصوت
-  useEffect(() => {
-    if (!window.speechSynthesis) return;
+  // إنشاء تأثيرات النقر المحسنة - نفس OriginPage
+  const createClickEffects = (room, event) => {
+    const container = effectsContainerRef.current;
+    if (!container) return;
 
-    const video = videoRef.current;
-    if (!video) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-    // إعادة التعيين
-    setBubbleText("");
-    window.speechSynthesis.cancel();
+    // تأثير الدائرة المتوسعة
+    const ring = document.createElement("div");
+    ring.className = "city-ring";
+    ring.style.left = `${centerX}px`;
+    ring.style.top = `${centerY}px`;
+    container.appendChild(ring);
 
-    // تشغيل الفيديو أولاً
-    video.play();
+    // تأثير الضوء الساطع
+    const light = document.createElement("div");
+    light.className = "city-light-flash";
+    light.style.left = `${centerX}px`;
+    light.style.top = `${centerY}px`;
+    container.appendChild(light);
 
-    // ثم تشغيل الصوت بعد تأخير بسيط
+    // تأثير النجوم
+    const stars = document.createElement("div");
+    stars.className = "city-stars";
+    stars.style.left = `${centerX}px`;
+    stars.style.top = `${centerY}px`;
+    
+    for (let i = 0; i < 8; i++) {
+      const star = document.createElement("div");
+      star.className = "city-star";
+      star.innerHTML = "⭐";
+      
+      const angle = (Math.PI * 2 * i) / 8;
+      const distance = 60;
+      const starX = Math.cos(angle) * distance;
+      const starY = Math.sin(angle) * distance;
+      
+      star.style.setProperty('--star-x', `${starX}px`);
+      star.style.setProperty('--star-y', `${starY}px`);
+      star.style.animationDelay = `${i * 0.1}s`;
+      
+      stars.appendChild(star);
+    }
+    
+    container.appendChild(stars);
+
+    // تنظيف العناصر بعد انتهاء التحريك
     setTimeout(() => {
-      speakText(t.hakimHello.speak, language, () => {
-        // بعد انتهاء الصوت، إظهار الغرف
-        setTimeout(() => {
-          setShowRooms(true);
-        }, 1000);
-      });
+      if (ring.parentNode) ring.parentNode.removeChild(ring);
+      if (light.parentNode) light.parentNode.removeChild(light);
+      if (stars.parentNode) stars.parentNode.removeChild(stars);
     }, 1000);
+  };
 
-    // عرض النص كاملاً مباشرة
-    setBubbleText(t.hakimHello.display);
-
-    return () => {
-      window.speechSynthesis.cancel();
-    };
+  // عند تحميل الصفحة: قول جملة Hakim الأولى - نفس OriginPage
+  useEffect(() => {
+    setBubbleText(t.hakimHello);
+    speakText(t.hakimHello, language, () => {
+      // بعد انتهاء الصوت، إظهار الغرف
+      setTimeout(() => {
+        setShowRooms(true);
+      }, 1000);
+    });
   }, [language, t.hakimHello]);
+
+  // تأثير عند النقر على الغرفة
+  const handleRoomClick = (room, event) => {
+    setActiveRoom(room);
+    createClickEffects(room, event);
+    
+    // تأثير صوتي بسيط
+    speakText(`${room.name}. ${room.description}`, language);
+  };
 
   // تأثير تفاعلي للروبوت
   const handleRobotClick = () => {
@@ -260,27 +295,29 @@ export default function RoomsPage({ language, onFinish }) {
     }
   };
 
-  // تأثير عند النقر على الغرفة
-  const handleRoomClick = (room) => {
-    setActiveRoom(room);
-    // تأثير صوتي بسيط
-    speakText(`${room.name}. ${room.description}`, language);
-  };
-
   return (
-    <div className="page rooms-page">
-      {/* 🌌 خلفية بصورة + نجوم */}
+    <div className="page-container rooms-page">
+      {/* 🌌 خلفية النجوم - نفس OriginPage */}
       <div
         className="background-image"
         style={{ backgroundImage: `url(${bgImage})` }}
-      >
-        <div ref={starsContainerRef} className="stars"></div>
-      </div>
-      
-      {/* طبقة شفافة فوق الخلفية */}
-      <div className="background-overlay"></div>
+      ></div>
 
-      {/* 🎙️ مؤشر الصوت */}
+      {/* 🌌 طبقة النجوم */}
+      <div ref={starsContainerRef} className="stars"></div>
+
+      {/* حاوية تأثيرات النقر */}
+      <div ref={effectsContainerRef} style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 100
+      }}></div>
+
+      {/* 🎙️ مؤشر الصوت - نفس OriginPage */}
       {isSpeaking && (
         <div className="speaking-indicator">
           <div className="pulse-animation"></div>
@@ -288,77 +325,108 @@ export default function RoomsPage({ language, onFinish }) {
         </div>
       )}
 
-      {/* 🤖 الروبوت + البالون */}
-      <div className="rooms-robot-container">
+      {/* 🤖 الروبوت + البالون - نفس OriginPage */}
+      <div className="robot-container top-left rooms-robot-container">
         <img 
           ref={robotRef}
           src={robotImage} 
           alt="Hakim Robot" 
-          className="rooms-robot-image"
+          className="robot-image rooms-robot-image"
           onClick={handleRobotClick}
         />
-        <div className="rooms-speech-bubble">
-          <p className="fade-in-line">
+
+        <div className={`speech-bubble rooms-speech-bubble ${getTextSizeClass(bubbleText)}`}>
+          <p style={{ margin: 0, lineHeight: '1.4' }}>
             {bubbleText}
-            {isSpeaking && <span className="speaking-dots">...</span>}
+            {isSpeaking && <span style={{ animation: 'blink 1s infinite' }}>...</span>}
           </p>
         </div>
       </div>
 
-      {/* 🎥 الفيديو */}
-      <div className="rooms-video-container">
-        <video
-          ref={videoRef}
-          src={videoSrc}
-          autoPlay
-          muted
-          className="rooms-video-player"
-        />
-        <div className="video-sparkles"></div>
+      {/* 🎥 محتوى الصفحة الرئيسي */}
+      <div className="main-content rooms-content">
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h2 className="rooms-page-title">
+            {language === 'en' ? 'Magical Adventure Rooms' : 
+             language === 'uz' ? 'Sehrli Sarguzasht Xonalari' : 
+             'Волшебные Комнаты Приключений'}
+          </h2>
+          <p className="rooms-page-subtitle">
+            {language === 'en' ? '✨ Choose your path to amazing discoveries! ✨' : 
+             language === 'uz' ? '✨ Ajoyib kashfiyotlar yo\'lini tanlang! ✨' : 
+             '✨ Выберите свой путь к удивительным открытиям! ✨'}
+          </p>
+        </div>
+
+        {/* 🎥 الفيديو */}
+        <div className="rooms-video-container">
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            autoPlay
+            muted
+            className="rooms-video-player"
+          />
+          <div className="video-overlay">
+            <p className="video-hint">
+              {language === 'en' ? '🎬 Preparing your magical journey...' : 
+               language === 'uz' ? '🎬 Sizning sehrli safaringiz tayyorlanmoqda...' : 
+               '🎬 Подготовка вашего волшебного путешествия...'}
+            </p>
+          </div>
+        </div>
+
+        {/* 🏰 عرض الغرف */}
+        {showRooms && (
+          <div className="rooms-container">
+            <h2 className="rooms-title">{t.roomsTitle}</h2>
+            
+            <div className="rooms-grid">
+              {t.rooms.map((room) => (
+                <div
+                  key={room.id}
+                  className={`room-card ${activeRoom?.id === room.id ? 'active' : ''}`}
+                  style={{ background: room.color }}
+                  onClick={(e) => handleRoomClick(room, e)}
+                >
+                  <div className="room-emoji">{room.emoji}</div>
+                  <h3 className="room-name">{room.name}</h3>
+                  <p className="room-description">{room.description}</p>
+                  <div className="room-glow"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 🏰 عرض الغرف */}
+      {/* ⏭️ زرار البداية */}
       {showRooms && (
-        <div className="rooms-container">
-          <h2 className="rooms-title">{t.roomsTitle}</h2>
-          
-          <div className="rooms-grid">
-            {t.rooms.map((room) => (
-              <div
-                key={room.id}
-                className={`room-card ${activeRoom?.id === room.id ? 'active' : ''}`}
-                style={{ background: room.color }}
-                onClick={() => handleRoomClick(room)}
-              >
-                <div className="room-emoji">{room.emoji}</div>
-                <h3 className="room-name">{room.name}</h3>
-                <p className="room-description">{room.description}</p>
-                <div className="room-glow"></div>
-              </div>
-            ))}
-          </div>
+        <div className="rooms-next-container">
+          <button className="rooms-start-button" onClick={onFinish}>
+            {t.button}
+          </button>
         </div>
       )}
 
-      {/* ⏭️ زرار البداية */}
-      <button className="rooms-start-button" onClick={onFinish}>
-        {t.button}
-      </button>
-
-      {/* ✨ تأثيرات جسيمات إضافية */}
-      <div className="floating-particles">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 10}s`,
-              animationDuration: `${Math.random() * 5 + 3}s`,
-            }}
-          ></div>
-        ))}
-      </div>
+      {/* 🏰 Popup معلومات الغرفة - مع خلفية box.png */}
+      {activeRoom && (
+        <div className="rooms-room-popup">
+          <div className={`rooms-room-popup-inner ${getTextSizeClass(activeRoom.description)}`}>
+            <h3>{activeRoom.name}</h3>
+            <p>
+              {activeRoom.description}
+            </p>
+            <button 
+              onClick={() => setActiveRoom(null)}
+            >
+              {language === 'en' ? 'Close' : 
+               language === 'uz' ? 'Yopish' : 
+               'Закрыть'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
